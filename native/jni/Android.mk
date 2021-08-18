@@ -4,14 +4,14 @@ LOCAL_PATH := $(call my-dir)
 # Binaries
 ########################
 
-# Global toggle for the WIP zygote injection features
-ENABLE_INJECT := 1
+# Global toggle for Zygisk
+DISABLE_ZYGISK := 0
 
 ifdef B_MAGISK
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := magisk
-LOCAL_STATIC_LIBRARIES := libnanopb libsystemproperties libutils libphmap
+LOCAL_STATIC_LIBRARIES := libnanopb libsystemproperties libutils libphmap libxhook
 LOCAL_C_INCLUDES := jni/include
 
 LOCAL_SRC_FILES := \
@@ -28,26 +28,19 @@ LOCAL_SRC_FILES := \
     magiskhide/magiskhide.cpp \
     magiskhide/hide_utils.cpp \
     magiskhide/hide_policy.cpp \
+    magiskhide/proc_monitor.cpp \
     resetprop/persist_properties.cpp \
     resetprop/resetprop.cpp \
     su/su.cpp \
     su/connect.cpp \
     su/pts.cpp \
-    su/su_daemon.cpp
+    su/su_daemon.cpp \
+    zygisk/entry.cpp \
+    zygisk/utils.cpp \
+    zygisk/hook.cpp \
+    zygisk/memory.cpp
 
 LOCAL_LDLIBS := -llog
-LOCAL_CPPFLAGS := -DENABLE_INJECT=$(ENABLE_INJECT)
-
-ifeq ($(ENABLE_INJECT),1)
-LOCAL_STATIC_LIBRARIES += libxhook
-LOCAL_SRC_FILES += \
-    inject/entry.cpp \
-    inject/utils.cpp \
-    inject/hook.cpp \
-    inject/memory.cpp
-else
-LOCAL_SRC_FILES += magiskhide/proc_monitor.cpp
-endif
 
 include $(BUILD_EXECUTABLE)
 
