@@ -34,7 +34,7 @@ void update_uid_map();
 bool is_hide_target(int uid, std::string_view process, int max_len = 1024);
 
 // Hide policies
-void hide_daemon(int pid);
+void hide_daemon(int pid, int client);
 void hide_unmount(int pid = -1);
 void hide_sensitive_props();
 void hide_late_sensitive_props();

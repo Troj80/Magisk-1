@@ -77,11 +77,12 @@ static void lazy_unmount(const char* mountpoint) {
         LOGD("hide: Unmounted (%s)\n", mountpoint);
 }
 
-void hide_daemon(int pid) {
+void hide_daemon(int pid, int client) {
     if (fork_dont_care() == 0) {
         hide_unmount(pid);
         // Send resume signal
         kill(pid, SIGCONT);
+        write_int(client, 0);
         _exit(0);
     }
 }
@@ -93,7 +94,7 @@ void hide_unmount(int pid) {
     if (pid > 0 && switch_mnt_ns(pid))
         return;
 
-    LOGD("hide: handling PID=[%d]\n", pid);
+    LOGD("hide: handling PID=[%d]\n", pid > 0 ? pid : getpid());
 
     char val;
     int fd = xopen(SELINUX_ENFORCE, O_RDONLY);

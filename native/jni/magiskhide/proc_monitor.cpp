@@ -230,7 +230,7 @@ static bool check_pid(int pid) {
     // The hide daemon will resume the process after hiding it
     LOGI("proc_monitor: [%s] PID=[%d] UID=[%d]\n", cmdline, pid, uid);
     detach_pid(pid, SIGSTOP);
-    hide_daemon(pid);
+    hide_daemon(pid, HIDE_IS_ENABLED);
     return true;
 
 not_target:
