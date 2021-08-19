@@ -86,6 +86,14 @@ void hide_daemon(int pid) {
     }
 }
 
+void hide_client(int pid, int client) {
+    if (fork_dont_care() == 0) {
+        hide_unmount(pid);
+        write_int(client, 0);
+        _exit(0);
+    }
+}
+
 #define TMPFS_MNT(dir) (mentry->mnt_type == "tmpfs"sv && \
 strncmp(mentry->mnt_dir, "/" #dir, sizeof("/" #dir) - 1) == 0)
 
@@ -93,7 +101,7 @@ void hide_unmount(int pid) {
     if (pid > 0 && switch_mnt_ns(pid))
         return;
 
-    LOGD("hide: handling PID=[%d]\n", pid);
+    LOGD("hide: handling PID=[%d]\n", pid > 0 ? pid : getpid());
 
     char val;
     int fd = xopen(SELINUX_ENFORCE, O_RDONLY);
