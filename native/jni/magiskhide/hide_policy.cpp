@@ -89,6 +89,9 @@ void hide_daemon(int pid) {
 #define TMPFS_MNT(dir) (mentry->mnt_type == "tmpfs"sv && \
 strncmp(mentry->mnt_dir, "/" #dir, sizeof("/" #dir) - 1) == 0)
 
+// socket path
+#define UDS_HIDE "/proc/net/unix"
+
 void hide_unmount(int pid) {
     if (pid > 0 && switch_mnt_ns(pid))
         return;
@@ -104,6 +107,9 @@ void hide_unmount(int pid) {
         chmod(SELINUX_ENFORCE, 0640);
         chmod(SELINUX_POLICY, 0440);
     }
+
+    // Unix domain sockets
+    chmod(UDS_HIDE, 0440);
 
     vector<string> targets;
 
