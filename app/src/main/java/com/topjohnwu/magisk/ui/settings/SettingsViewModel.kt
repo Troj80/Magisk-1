@@ -70,7 +70,7 @@ class SettingsViewModel(
         if (Info.env.isActive) {
             list.addAll(listOf(
                 Magisk,
-                MagiskHide, SystemlessHosts
+                Zygisk, MagiskHide, SystemlessHosts
             ))
         }
 
