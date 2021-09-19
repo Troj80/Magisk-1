@@ -219,6 +219,17 @@ void remote_get_app_info(int uid, const char *process, AppInfo *info) {
     }
 }
 
+int remote_request_unmount() {
+    if (int fd = connect_daemon(); fd >= 0) {
+        write_int(fd, ZYGISK_REQUEST);
+        write_int(fd, ZYGISK_UNMOUNT);
+        int ret = read_int(fd);
+        close(fd);
+        return ret;
+    }
+    return DAEMON_ERROR;
+}
+
 // The following code runs in magiskd
 
 static void setup_files(int client, ucred *cred) {
@@ -250,6 +261,15 @@ static void get_app_info(int client) {
     xwrite(client, &info, sizeof(info));
 }
 
+static void do_unmount(int client, ucred *cred) {
+    LOGD("zygisk: cleanup mount namespace for pid=[%d]\n", cred->pid);
+    if (hide_enabled()) {
+        hide_daemon(cred->pid);
+    } else {
+        write_int(client, HIDE_NOT_ENABLED);
+    }
+}
+
 static void send_log_pipe(int fd) {
     // There is race condition here, but we can't really do much about it...
     if (logd_fd >= 0) {
@@ -268,6 +288,9 @@ void zygisk_handler(int client, ucred *cred) {
         break;
     case ZYGISK_GET_APPINFO:
         get_app_info(client);
+        break;
+    case ZYGISK_UNMOUNT:
+        do_unmount(client, cred);
         break;
     case ZYGISK_GET_LOG_PIPE:
         send_log_pipe(client);
