@@ -41,6 +41,7 @@ void hide_late_sensitive_props();
 
 extern pthread_mutex_t hide_state_lock;
 extern std::map<int, std::vector<std::string_view>> uid_proc_map;
+extern int cached_manager_app_id;
 
 enum {
     LAUNCH_MAGISKHIDE,
