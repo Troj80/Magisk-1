@@ -263,6 +263,10 @@ void HookContext::nativeSpecializeAppProcess_post() {
     env->ReleaseStringUTFChars(args->nice_name, process);
     if (info.is_magisk_app) {
         setenv("ZYGISK_ENABLED", "1", 1);
+    } else if (args->is_child_zygote && *args->is_child_zygote) {
+        // If we are in child zygote, unhook all zygisk hooks
+        // Modules still have their code loaded and can do whatever they want
+        unhook_functions();
     }
     if (flags[DENY_FLAG]) {
         self_unload();
