@@ -4,10 +4,10 @@
 ##########################################################
 
 # The version name of Magisk. Default: git HEAD short SHA1
-version=string
+version=23.1
 
 # Output path. Default: out
-outdir=string
+outdir=out
 
 #####################################################
 # Signing configs for signing zips and APKs
@@ -15,10 +15,10 @@ outdir=string
 #####################################################
 
 # Path to keystore file
-keyStore=string
+keyStore=
 # Keystore password
-keyStorePass=string
+keyStorePass=
 # The desired key alias in the keystore
-keyAlias=string
+keyAlias=
 # Password of specified key alias
-keyPass=string
+keyPass=
