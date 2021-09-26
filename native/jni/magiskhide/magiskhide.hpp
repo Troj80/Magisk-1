@@ -49,9 +49,7 @@ enum {
     ADD_HIDELIST,
     RM_HIDELIST,
     LS_HIDELIST,
-    HIDE_STATUS,
-    REMOTE_CHECK_HIDE,
-    REMOTE_DO_HIDE
+    HIDE_STATUS
 };
 
 enum {

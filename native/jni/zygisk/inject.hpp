@@ -9,6 +9,7 @@
 enum : int {
     ZYGISK_SETUP,
     ZYGISK_GET_APPINFO,
+    ZYGISK_CHECK_HIDELIST,
     ZYGISK_UNMOUNT,
     ZYGISK_GET_LOG_PIPE,
 };
@@ -33,4 +34,5 @@ void self_unload();
 void hook_functions();
 bool unhook_functions();
 void remote_get_app_info(int uid, const char *process, AppInfo *info);
+bool remote_check_hidelist(int uid, const char *process);
 int remote_request_unmount();

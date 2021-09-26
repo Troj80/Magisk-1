@@ -226,6 +226,23 @@ void remote_get_app_info(int uid, const char *process, AppInfo *info) {
     }
 }
 
+bool remote_check_hidelist(int uid, const char *process) {
+    if (int fd = connect_daemon(); fd >= 0) {
+        write_int(fd, ZYGISK_REQUEST);
+        write_int(fd, ZYGISK_CHECK_HIDELIST);
+
+        int ret = -1;
+        if (read_int(fd) == 0) {
+            write_int(fd, uid);
+            write_string(fd, process);
+            ret = read_int(fd);
+        }
+        close(fd);
+        return ret >= 0 && ret;
+    }
+    return false;
+}
+
 int remote_request_unmount() {
     if (int fd = connect_daemon(); fd >= 0) {
         write_int(fd, ZYGISK_REQUEST);
@@ -298,6 +315,17 @@ static void get_app_info(int client) {
     xwrite(client, &info, sizeof(info));
 }
 
+static void check_hidelist(int client) {
+    if (!hide_enabled()) {
+        write_int(client, HIDE_NOT_ENABLED);
+        return;
+    }
+    write_int(client, 0);
+    int uid = read_int(client);
+    string process = read_string(client);
+    write_int(client, is_hide_target(uid, process));
+}
+
 static void do_unmount(int client, ucred *cred) {
     LOGD("zygisk: cleanup mount namespace for pid=[%d]\n", cred->pid);
     if (hide_enabled()) {
@@ -325,6 +353,9 @@ void zygisk_handler(int client, ucred *cred) {
         break;
     case ZYGISK_GET_APPINFO:
         get_app_info(client);
+        break;
+    case ZYGISK_CHECK_HIDELIST:
+        check_hidelist(client);
         break;
     case ZYGISK_UNMOUNT:
         do_unmount(client, cred);

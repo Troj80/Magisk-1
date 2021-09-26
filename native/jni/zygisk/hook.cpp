@@ -22,6 +22,7 @@ using xstring = jni_hook::string;
 namespace {
 
 enum {
+    HIDE_FLAG,
     FORK_AND_SPECIALIZE,
     APP_SPECIALIZE,
     SERVER_SPECIALIZE,
@@ -139,6 +140,11 @@ DCL_HOOK_FUNC(int, fork) {
 // This is the latest point where we can still connect to the magiskd main socket
 DCL_HOOK_FUNC(int, selinux_android_setcontext,
         uid_t uid, int isSystemServer, const char *seinfo, const char *pkgname) {
+    if (g_ctx && g_ctx->flags[HIDE_FLAG]) {
+        if (remote_request_unmount() == 0) {
+            LOGD("zygisk: mount namespace cleaned up\n");
+        }
+    }
     return old_selinux_android_setcontext(uid, isSystemServer, seinfo, pkgname);
 }
 
@@ -239,7 +245,12 @@ void HookContext::nativeSpecializeAppProcess_pre() {
     remote_get_app_info(args->uid, process, &info);
 
     /* TODO: Handle MOUNT_EXTERNAL_NONE */
-    run_modules_pre();
+    if (args->mount_external != 0 && remote_check_hidelist(args->uid, process)) {
+        flags[HIDE_FLAG] = true;
+        LOGI("zygisk: [%s] is on the hide list\n", process);
+    } else {
+        run_modules_pre();
+    }
 }
 
 void HookContext::nativeSpecializeAppProcess_post() {
@@ -250,7 +261,12 @@ void HookContext::nativeSpecializeAppProcess_post() {
     }
 
     env->ReleaseStringUTFChars(args->nice_name, process);
-    run_modules_post();
+    if (flags[HIDE_FLAG]) {
+        self_unload();
+    } else {
+        run_modules_post();
+    }
+
     if (info.is_magisk_app) {
         setenv("ZYGISK_ENABLED", "1", 1);
     } else if (args->is_child_zygote && *args->is_child_zygote) {
