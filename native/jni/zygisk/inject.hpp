@@ -8,7 +8,6 @@
 
 enum : int {
     ZYGISK_SETUP,
-    ZYGISK_CHECK_DENYLIST,
     ZYGISK_UNMOUNT,
     ZYGISK_GET_LOG_PIPE,
 };
@@ -25,5 +24,4 @@ uintptr_t get_function_addr(int pid, const char *lib, uintptr_t off);
 void self_unload();
 void hook_functions();
 bool unhook_functions();
-bool remote_check_denylist(int uid, const char *process);
 int remote_request_unmount();
