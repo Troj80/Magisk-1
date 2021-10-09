@@ -50,6 +50,8 @@ enum : int {
     STATE_BOOT_COMPLETE
 };
 
+extern bool zygisk_enabled;
+
 int connect_daemon(bool create = false);
 
 // Poll control
