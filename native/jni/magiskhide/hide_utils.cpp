@@ -24,6 +24,8 @@ static pthread_mutex_t hide_state_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void update_uid_map() {
     mutex_guard lock(hide_state_lock);
+    if (!zygisk_enabled)
+        return;
     uid_proc_map->clear();
     string data_path(APP_DATA_DIR);
     size_t len = data_path.length();
@@ -153,6 +155,8 @@ static bool validate(const char *pkg, const char *proc) {
 static void add_hide_set(const char *pkg, const char *proc) {
     LOGI("hide_list add: [%s/%s]\n", pkg, proc);
     hide_set->emplace(pkg, proc);
+    if (!zygisk_enabled)
+        return;
     if (strcmp(pkg, ISOLATED_MAGIC) == 0) {
         // Kill all matching isolated processes
         kill_process(proc, true, proc_name_match<&str_starts>);
@@ -255,7 +259,7 @@ static bool init_list() {
     db_err_cmd(err, return false);
 
     // If Android Q+, also kill blastula pool and all app zygotes
-    if (SDK_INT >= 29) {
+    if (SDK_INT >= 29 && zygisk_enabled) {
         kill_process("usap32", true);
         kill_process("usap64", true);
         kill_process("_zygote", true, proc_name_match<&str_ends_safe>);
@@ -337,12 +341,14 @@ int launch_magiskhide(bool late_props) {
 
     hide_state = true;
 
-    inotify_fd = xinotify_init1(IN_CLOEXEC);
-    if (inotify_fd >= 0) {
-        // Monitor packages.xml
-        inotify_add_watch(inotify_fd, "/data/system", IN_CLOSE_WRITE);
-        pollfd inotify_pfd = { inotify_fd, POLLIN, 0 };
-        register_poll(&inotify_pfd, inotify_handler);
+    if (zygisk_enabled) {
+        inotify_fd = xinotify_init1(IN_CLOEXEC);
+        if (inotify_fd >= 0) {
+            // Monitor packages.xml
+            inotify_add_watch(inotify_fd, "/data/system", IN_CLOSE_WRITE);
+            pollfd inotify_pfd = { inotify_fd, POLLIN, 0 };
+            register_poll(&inotify_pfd, inotify_handler);
+        }
     }
 
     update_hide_config();
