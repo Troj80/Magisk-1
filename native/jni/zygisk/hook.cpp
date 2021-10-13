@@ -286,8 +286,6 @@ void HookContext::nativeSpecializeAppProcess_pre() {
         VLOG("zygisk: pre  specialize [%s]\n", process);
     }
 
-    remote_get_app_info(args->uid, process, &info);
-
     /* TODO: Handle MOUNT_EXTERNAL_NONE */
     if (args->mount_external != 0 && remote_check_denylist(args->uid, process)) {
         flags[DENY_FLAG] = true;
@@ -295,6 +293,8 @@ void HookContext::nativeSpecializeAppProcess_pre() {
     } else {
         run_modules_pre();
     }
+
+    remote_get_app_info(args->uid, process, &info);
 }
 
 void HookContext::nativeSpecializeAppProcess_post() {
@@ -305,17 +305,18 @@ void HookContext::nativeSpecializeAppProcess_post() {
     }
 
     env->ReleaseStringUTFChars(args->nice_name, process);
+    if (flags[DENY_FLAG]) {
+        self_unload();
+    } else {
+        run_modules_post();
+    }
+
     if (info.is_magisk_app) {
         setenv("ZYGISK_ENABLED", "1", 1);
     } else if (args->is_child_zygote && *args->is_child_zygote) {
         // If we are in child zygote, unhook all zygisk hooks
         // Modules still have their code loaded and can do whatever they want
         unhook_functions();
-    }
-    if (flags[DENY_FLAG]) {
-        self_unload();
-    } else {
-        run_modules_post();
     }
     g_ctx = nullptr;
 }
